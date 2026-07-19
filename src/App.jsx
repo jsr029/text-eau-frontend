@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import Login from './components/Login';
+import Layout from './components/Layout';           // ← Nouveau Layout avec Burger Menu
 import Dashboard from './components/Dashboard';
 import UsersManagement from './components/UsersManagement';
 import OrdersManagement from './components/OrdersManagement';
@@ -13,7 +14,8 @@ function App() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const token = localStorage.getItem('token');
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
@@ -26,33 +28,32 @@ function App() {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (
     <Router>
       <Routes>
+        {/* Page de connexion */}
         <Route path="/login" element={!user ? <Login onLogin={login} /> : <Navigate to="/dashboard" />} />
-        <Route 
-          path="/dashboard" 
-          element={user ? <Dashboard user={user} onLogout={logout} /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/users" 
-          element={user && user.role === 'superAdmin' ? <UsersManagement user={user} /> : <Navigate to="/dashboard" />} 
-        />
-        <Route 
-          path="/orders" 
-          element={user ? <OrdersManagement user={user} /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/deliveries" 
-          element={user ? <DeliveriesManagement user={user} /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/invoices" 
-          element={user ? <InvoicesManagement user={user} /> : <Navigate to="/login" />} 
-        />
-        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* Toutes les pages protégées avec Layout (Burger Menu) */}
+        <Route path="/*" element={
+          user ? (
+            <Layout user={user} onLogout={logout}>
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard user={user} onLogout={logout} />} />
+                <Route path="/users" element={user.role === 'superAdmin' ? <UsersManagement user={user} /> : <Navigate to="/dashboard" />} />
+                <Route path="/orders" element={<OrdersManagement user={user} />} />
+                <Route path="/deliveries" element={<DeliveriesManagement user={user} />} />
+                <Route path="/invoices" element={<InvoicesManagement user={user} />} />
+                <Route path="/" element={<Navigate to="/dashboard" />} />
+              </Routes>
+            </Layout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        } />
       </Routes>
     </Router>
   );
