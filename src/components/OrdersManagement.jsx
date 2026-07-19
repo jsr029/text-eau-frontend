@@ -16,7 +16,7 @@ const OrdersManagement = ({ user }) => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/orders');
+      const res = await axios.get('https://text-eau-backend.vercel.app/api/orders');
       setOrders(res.data);
     } catch (err) {
       console.error('Erreur fetch orders:', err);
@@ -33,7 +33,7 @@ const OrdersManagement = ({ user }) => {
     if (!window.confirm('Voulez-vous vraiment créer cette commande ?')) return;
     
     try {
-      const res = await axios.post('http://localhost:5000/api/orders', newOrder);
+      const res = await axios.post('https://text-eau-backend.vercel.app/api/orders', newOrder);
       alert(`✅ Commande ${res.data.order.orderNumber} créée ! Bon de livraison J+1 généré.`);
       setOrders([res.data.order, ...orders]);
       setNewOrder({ client: '', company: '', items: [{article: '', quantity: 1, price: 0}], totalAmount: 0 });
