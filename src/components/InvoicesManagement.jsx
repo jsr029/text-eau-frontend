@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';   // ← Instance axios avec token automatique
 
 const InvoicesManagement = ({ user }) => {
   const [invoices, setInvoices] = useState([]);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-
-  const API_URL = 'https://text-eau-backend.vercel.app';
 
   useEffect(() => {
     fetchInvoices();
@@ -13,12 +10,12 @@ const InvoicesManagement = ({ user }) => {
 
   const fetchInvoices = async () => {
     try {
-      // Pour l'instant on récupère les commandes en attente de paiement
-      const res = await axios.get(`${API_URL}/api/orders`);
+      const res = await api.get('/api/orders');
+      // Filtrer les commandes non payées
       setInvoices(res.data.filter(o => o.paymentStatus !== 'paid'));
     } catch (err) {
       console.error(err);
-      // Données de test
+      // Données de test en cas d'erreur
       setInvoices([
         { _id: 1, orderNumber: 'CMD-2026-0001', client: 'Entreprise ABC', totalAmount: 245, status: 'pending' },
         { _id: 2, orderNumber: 'CMD-2026-0002', client: 'Société XYZ', totalAmount: 189, status: 'pending' },
@@ -30,20 +27,22 @@ const InvoicesManagement = ({ user }) => {
     if (!window.confirm(`Voulez-vous payer la facture ${invoice.orderNumber} (${invoice.totalAmount} €) ?`)) return;
 
     try {
-      const res = await axios.post(`${API_URL}/api/payments/create-paypal-order`, {
+      await api.post('/api/payments/create-paypal-order', {
         orderId: invoice._id,
         amount: invoice.totalAmount
       });
 
       alert('Redirection vers PayPal...');
-      // Simulation paiement réussi
+
+      // Simulation paiement (en production, redirigez vers PayPal)
       setTimeout(async () => {
-        await axios.post(`${API_URL}/api/payments/capture-paypal-order`, { orderId: invoice._id });
+        await api.post('/api/payments/capture-paypal-order', { orderId: invoice._id });
         alert('✅ Paiement PayPal / Carte Bancaire réussi !');
         fetchInvoices();
       }, 1500);
     } catch (err) {
       alert('Erreur lors du paiement');
+      console.error(err);
     }
   };
 

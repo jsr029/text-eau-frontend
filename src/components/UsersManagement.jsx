@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';   // ← Instance axios avec token
 
 const UsersManagement = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'user', company: '' });
-
-  const API_URL = 'https://text-eau-backend.vercel.app';
 
   useEffect(() => {
     fetchUsers();
@@ -13,7 +11,7 @@ const UsersManagement = ({ user }) => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/users`);
+      const res = await api.get('/api/users');
       setUsers(res.data);
     } catch (err) {
       console.error(err);
@@ -33,7 +31,7 @@ const UsersManagement = ({ user }) => {
     if (!window.confirm('Voulez-vous vraiment créer cet utilisateur ?')) return;
 
     try {
-      await axios.post(`${API_URL}/api/users`, newUser);
+      await api.post('/api/users', newUser);
       alert('Utilisateur créé avec succès !');
       setNewUser({ name: '', email: '', role: 'user', company: '' });
       fetchUsers();
@@ -45,7 +43,7 @@ const UsersManagement = ({ user }) => {
   const updateRole = async (id, newRole) => {
     if (!window.confirm(`Changer le rôle en ${newRole} ?`)) return;
     try {
-      await axios.put(`${API_URL}/api/users/${id}/role`, { role: newRole });
+      await api.put(`/api/users/${id}/role`, { role: newRole });
       fetchUsers();
     } catch (err) {
       alert('Erreur lors de la modification');
@@ -55,7 +53,7 @@ const UsersManagement = ({ user }) => {
   const confirmDelete = async (id) => {
     if (!window.confirm('Voulez-vous vraiment supprimer cet utilisateur ?')) return;
     try {
-      await axios.delete(`${API_URL}/api/users/${id}`);
+      await api.delete(`/api/users/${id}`);
       fetchUsers();
     } catch (err) {
       alert('Erreur lors de la suppression');

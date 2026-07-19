@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';   // ← Utilisation de l'instance axios avec token
 
 const DeliveriesManagement = ({ user }) => {
   const [deliveries, setDeliveries] = useState([]);
-
-  const API_URL = 'https://text-eau-backend.vercel.app';
 
   useEffect(() => {
     fetchDeliveries();
@@ -12,11 +10,11 @@ const DeliveriesManagement = ({ user }) => {
 
   const fetchDeliveries = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/deliveries`);
+      const res = await api.get('/api/deliveries');
       setDeliveries(res.data);
     } catch (err) {
       console.error(err);
-      // Données de démonstration
+      // Données de démonstration en cas d'erreur
       setDeliveries([
         { _id: 1, deliveryNumber: 'LIV-2026-0001', client: 'Entreprise ABC', status: 'in_transit', deliveryDate: '2026-07-20' },
         { _id: 2, deliveryNumber: 'LIV-2026-0002', client: 'Société XYZ', status: 'scheduled', deliveryDate: '2026-07-21' },
@@ -27,11 +25,11 @@ const DeliveriesManagement = ({ user }) => {
   const updateStatus = async (id, newStatus) => {
     if (!window.confirm(`Passer en statut "${newStatus}" ?`)) return;
     try {
-      // Appel API (à implémenter côté backend si besoin)
+      // TODO: Ajouter une route PUT /api/deliveries/:id sur le backend si besoin
       setDeliveries(deliveries.map(d => 
         d._id === id ? { ...d, status: newStatus } : d
       ));
-      alert('Statut mis à jour !');
+      alert('Statut mis à jour avec succès !');
     } catch (err) {
       alert('Erreur lors de la mise à jour');
     }
@@ -39,8 +37,8 @@ const DeliveriesManagement = ({ user }) => {
 
   const printDeliveryPDF = (delivery) => {
     if (!window.confirm(`Imprimer le bon de livraison ${delivery.deliveryNumber} ?`)) return;
-    alert(`📄 Bon de livraison ${delivery.deliveryNumber} généré en PDF\n\nClient : ${delivery.client}\nDate : ${delivery.deliveryDate}`);
-    // Ici vous pouvez intégrer jsPDF ou react-to-print pour vrai PDF
+    alert(`📄 Bon de livraison ${delivery.deliveryNumber} généré en PDF\n\nClient : ${delivery.client}\nDate : ${new Date(delivery.deliveryDate).toLocaleDateString('fr-FR')}`);
+    // Vous pouvez intégrer jsPDF ici pour un vrai PDF
   };
 
   const getStatusColor = (status) => {
@@ -78,7 +76,9 @@ const DeliveriesManagement = ({ user }) => {
                 <div>
                   <div className="font-mono font-bold text-lg">{delivery.deliveryNumber}</div>
                   <div className="text-gray-600 mt-1">{delivery.client}</div>
-                  <div className="text-sm text-gray-500">Livraison prévue : {new Date(delivery.deliveryDate).toLocaleDateString('fr-FR')}</div>
+                  <div className="text-sm text-gray-500">
+                    Livraison prévue : {new Date(delivery.deliveryDate).toLocaleDateString('fr-FR')}
+                  </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-3">

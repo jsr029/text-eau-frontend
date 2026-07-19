@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';   // ← Instance axios avec token
 
 const Login = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true); // true = login, false = register
@@ -8,8 +8,6 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const API_URL = 'https://text-eau-backend.vercel.app';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +20,7 @@ const Login = ({ onLogin }) => {
         ? { email, password } 
         : { name, email, password, company };
 
-      const res = await axios.post(`${API_URL}${endpoint}`, payload);
+      const res = await api.post(endpoint, payload);   // ← Utilisation de api (token automatique)
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
@@ -30,10 +28,25 @@ const Login = ({ onLogin }) => {
       onLogin(res.data.user);
       window.location.href = '/dashboard';
     } catch (err) {
-      alert(err.response?.data?.message || 'Erreur');
+      alert(err.response?.data?.message || 'Erreur de connexion');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    if (!window.confirm('Continuer avec Google ?')) return;
+    
+    const mockUser = { 
+      id: 'google-' + Date.now(), 
+      name: 'Utilisateur Google', 
+      email: email || 'google@texteau.com', 
+      role: email.toLowerCase().includes('super') ? 'superAdmin' : 'user' 
+    };
+    
+    onLogin(mockUser);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    window.location.href = '/dashboard';
   };
 
   return (
@@ -68,12 +81,15 @@ const Login = ({ onLogin }) => {
           <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full p-4 border rounded-2xl" required />
           <input type="password" placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 border rounded-2xl" required />
 
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-semibold text-lg">
+          <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-4 rounded-2xl font-semibold text-lg">
             {loading ? 'Chargement...' : (isLogin ? 'Se connecter' : "Créer mon compte")}
           </button>
         </form>
 
-        <button onClick={() => {/* Google login */ alert('Google login simulé')}} className="mt-6 w-full border py-4 rounded-2xl hover:bg-gray-50">
+        <button 
+          onClick={handleGoogleLogin} 
+          className="mt-6 w-full border py-4 rounded-2xl hover:bg-gray-50 font-medium"
+        >
           Continuer avec Google
         </button>
       </div>

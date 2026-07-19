@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';   // ← Instance axios avec token automatique
 
 const OrdersManagement = ({ user }) => {
   const [orders, setOrders] = useState([]);
@@ -10,15 +10,13 @@ const OrdersManagement = ({ user }) => {
     totalAmount: 0 
   });
 
-  const API_URL = 'https://text-eau-backend.vercel.app';
-
   useEffect(() => {
     fetchOrders();
   }, []);
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/orders`);
+      const res = await api.get('/api/orders');
       setOrders(res.data);
     } catch (err) {
       console.error('Erreur fetch orders:', err);
@@ -34,11 +32,7 @@ const OrdersManagement = ({ user }) => {
     if (!window.confirm('Voulez-vous vraiment créer cette commande ?')) return;
     
     try {
-      const res = await axios.post(`${API_URL}/api/orders`, newOrder, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const res = await api.post('/api/orders', newOrder);
 
       alert(`✅ Commande ${res.data.order.orderNumber} créée avec succès !\nBon de livraison J+1 généré.`);
       setOrders([res.data.order, ...orders]);
